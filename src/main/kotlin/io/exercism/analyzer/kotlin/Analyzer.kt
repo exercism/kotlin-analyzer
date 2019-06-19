@@ -5,15 +5,17 @@ import arrow.instances.either.monad.flatMap
 import io.exercism.analyzer.kotlin.exercise.Exercise
 import io.exercism.analyzer.kotlin.exercise.NoSolutionError
 import io.exercism.analyzer.kotlin.exercise.twofer.TwoFer
+import mu.KotlinLogging
 
-class Analyzer(val args: Array<String>) {
+class Analyzer(private val args: Array<String>) {
+    private val logger = KotlinLogging.logger {}
 
 
     fun run() {
         validateArgs()
             .flatMap { findSolution(it.a, it.b) }
-            .flatMap {it.autoMentor()}
-            .fold({ println("ERROR ${it.message}") }, { println("OK") })
+            .flatMap { it.autoMentor() }
+            .fold({ logger.error { it.message } }, { logger.info { "OK : $it" } })
     }
 
     private fun findSolution(slug: String, path: String): Either<NoSolutionError, Exercise> =
@@ -32,5 +34,10 @@ class Analyzer(val args: Array<String>) {
 }
 
 fun main(args: Array<String>) {
+    Try {
+        System.setProperty("log.path", args[1])
+    }.fold(
+        { System.setProperty("log.path", "/opt/analyze") },
+        { Unit })
     Analyzer(args).run()
 }

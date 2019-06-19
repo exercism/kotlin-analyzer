@@ -16,7 +16,7 @@ const val DIR_SRC_GRADLE = "/src/main/kotlin"
 abstract class Exercise(open val path: String) {
     val gson = Gson()
 
-    fun autoMentor(): Either<ExerciseError, Unit> {
+    fun autoMentor(): Either<ExerciseError, Analysis> {
         return checkPath()
             .flatMap { loadSourceFile() }
             .flatMap { extractCode(it) }
@@ -25,9 +25,10 @@ abstract class Exercise(open val path: String) {
             .fold({ it.left() }, { it.right() })
     }
 
-    private fun generateJsonFile(analysis: Analysis): Either<JsonGenerationError, Unit> {
+    private fun generateJsonFile(analysis: Analysis): Either<JsonGenerationError, Analysis> {
         return Try {
             File(path+"/analysis.json").writeText(gson.toJson(analysis))
+            analysis
         }.toEither { JsonGenerationError() }
 
     }
