@@ -14,7 +14,6 @@ import java.nio.file.Paths
 const val DIR_SRC_GRADLE = "/src/main/kotlin"
 
 abstract class Exercise(open val path: String) {
-    abstract val directoryName: String
     val gson = Gson()
 
     fun autoMentor(): Either<ExerciseError, Unit> {
@@ -42,7 +41,6 @@ abstract class Exercise(open val path: String) {
             with(Paths.get(path)) {
                 require(Files.exists(this), { "Path doesn't exists" })
             }
-            require(path.contains(this.directoryName), { "Path name should not match with Exercise" })
         }.toEither { PathError(it.message ?: "Error during checkPath") }
 
     private fun loadSourceFile(): Either<SourceFileError, String> =

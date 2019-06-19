@@ -21,6 +21,7 @@ class TwoFer(override val path: String) : Exercise(path) {
                 is Node.Decl.Func -> {
                     when {
                         v.name == "twofer" -> {
+                            //TODO: Replace with map or ValidatedNel
                             //DISAPPROVE
                             checkOnlyOneParameter(v)
                                 .flatMap { checkFirstParamNotNullable(it) }
@@ -147,7 +148,4 @@ class TwoFer(override val path: String) : Exercise(path) {
                 comments = listOf(error.comment.message ?: "")
             )
         }
-
-
-    override val directoryName = "kotlin/two-fer"
 }
