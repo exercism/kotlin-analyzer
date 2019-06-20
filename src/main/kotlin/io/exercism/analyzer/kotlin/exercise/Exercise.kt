@@ -46,7 +46,7 @@ abstract class Exercise(open val path: String) {
 
     private fun loadSourceFile(): Either<SourceFileError, String> =
         Try {
-            File("$path$DIR_SRC_GRADLE")
+            File("$path")
                 .listFiles(FileFilter { it.path.endsWith(".kt") })
                 .map { it.absolutePath }
                 .first()
