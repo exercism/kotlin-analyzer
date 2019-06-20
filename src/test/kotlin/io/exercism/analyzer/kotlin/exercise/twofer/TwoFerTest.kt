@@ -1,11 +1,9 @@
 package io.exercism.analyzer.kotlin.exercise.twofer
 
 import com.google.gson.Gson
-import kastree.ast.psi.Converter
 import kastree.ast.psi.Parser
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -39,7 +37,6 @@ class TwoFerTest(val path:String) {
                 { fail("Should not failed") },
                 { assertEquals(analysis, gson.toJson(it)) }
             )
-
     }
 
 }

@@ -61,6 +61,7 @@ class TwoFer(override val path: String) : Exercise(path) {
             else -> return func.right()
         }
     }
+
     private fun checkUseLoop(func: Node.Decl.Func): Either<RuleError, Node.Decl.Func> {
         var useLoop = false
         Visitor.visit(func) { v, _ ->
@@ -111,16 +112,19 @@ class TwoFer(override val path: String) : Exercise(path) {
         when (func.params.first().default) {
             is Node.Expr.StringTmpl ->
                 with(func.params.first().default as Node.Expr.StringTmpl) {
-                    when (this.elems.first()) {
-                        is Node.Expr.StringTmpl.Elem.Regular ->
-                            with(this.elems.first() as Node.Expr.StringTmpl.Elem.Regular) {
-                                when (defaultValue) {
-                                    this.str -> func.right()
-                                    else -> RuleError(ErrorComment.WRONG_DEFAULT_VALUE).left()
-                                }
+                    when {
+                        this.elems.size == 0 -> RuleError(ErrorComment.WRONG_DEFAULT_VALUE).left()
+                        else -> when (this.elems.first()) {
+                            is Node.Expr.StringTmpl.Elem.Regular ->
+                                with(this.elems.first() as Node.Expr.StringTmpl.Elem.Regular) {
+                                    when (defaultValue) {
+                                        this.str -> func.right()
+                                        else -> RuleError(ErrorComment.WRONG_DEFAULT_VALUE).left()
+                                    }
 
-                            }
-                        else -> RuleError(ErrorComment.NO_DEFAULT_VALUE).left()
+                                }
+                            else -> RuleError(ErrorComment.NO_DEFAULT_VALUE).left()
+                        }
                     }
                 }
             else -> RuleError(ErrorComment.NO_DEFAULT_VALUE).left()
