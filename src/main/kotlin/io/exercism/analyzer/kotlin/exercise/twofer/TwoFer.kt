@@ -16,36 +16,73 @@ import kastree.ast.psi.Parser
 class TwoFer(override val path: String) : Exercise(path) {
     override fun applyRules(file: Node.File): Either<ExerciseError, Analysis> {
         var analysis: Analysis? = null
+        var found: Boolean = false
         Visitor.visit(file) { v, _ ->
             when (v) {
                 is Node.Decl.Func -> {
                     when {
                         v.name == "twofer" -> {
-                            //TODO: Replace with map or ValidatedNel
-                            //DISAPPROVE
-                            checkOnlyOneParameter(v)
-                                .flatMap { checkFirstParamNotNullable(it) }
-                                .flatMap { checkFirstParamHasDefaultValue(it, "you") }
-                                .flatMap { checkNoCondition(it) }
-                                .flatMap { checkUseLoop(it) }
-                                //APPROVE
-                                .flatMap { checkNoReturn(it) }
-                                .flatMap { checkInferenceType(it) }
-                                //APPROVE_OPTIMAL
-                                .flatMap { checkApproveOptimal(file, it) }
-                                .fold({
-                                    analysis = generateAnalysis(it)
-                                }, {
-                                    analysis = generateAnalysis()
-                                })
+                            when {
+                                found -> analysis = generateAnalysis(RuleError(ErrorComment.TOO_MANY_TWOFER_FUNCTION))
+                                else -> {
+                                    found = true
+                                    //TODO: Replace with map or ValidatedNel
+                                    //DISAPPROVE
+                                    checkOnlyOneParameter(v)
+                                        .flatMap { checkFirstParamNotNullable(it) }
+                                        .flatMap { checkFirstParamHasDefaultValue(it, "you") }
+                                        .flatMap { checkNoCondition(it) }
+                                        .flatMap { checkUseLoop(it) }
+                                        .flatMap { checkStringTemplate(it) }
+                                        .flatMap { checkNoReturn(it) }
+                                        //APPROVE
+                                        .flatMap { checkInferenceType(it) }
+                                        //APPROVE_OPTIMAL
+                                        .flatMap { checkApproveOptimal(file, it) }
+                                        .fold({
+                                            analysis = generateAnalysis(it)
+                                        }, {
+                                            analysis = generateAnalysis()
+                                        })
+                                }
+                            }
                         }
                     }
+
                 }
             }
         }
         return when (analysis) {
             null -> generateAnalysis(RuleError(ErrorComment.NO_FUNCTION)).right()
             else -> analysis!!.right()
+        }
+    }
+
+    private fun checkStringTemplate(func: Node.Decl.Func): Either<RuleError, Node.Decl.Func> {
+        var useTokenAdd = false
+        var useStringFormat = false
+        Visitor.visit(func) { v, _ ->
+            when (v) {
+                is Node.Expr.Name -> {
+                    with(v as Node.Expr.Name) {
+                        when (this.name) {
+                            "format" -> useStringFormat = true
+                        }
+                    }
+                }
+                is Node.Expr.BinaryOp.Oper.Token -> {
+                    with(v as Node.Expr.BinaryOp.Oper.Token) {
+                        when (this.token) {
+                            Node.Expr.BinaryOp.Token.ADD -> useTokenAdd = true
+                        }
+                    }
+
+                }
+            }
+        }
+        return when {
+            useTokenAdd || useStringFormat -> return RuleError(ErrorComment.NO_STRING_TEMPLATE).left()
+            else -> return func.right()
         }
     }
 
@@ -57,7 +94,7 @@ class TwoFer(override val path: String) : Exercise(path) {
             }
         }
         return when {
-            useReturn -> return RuleError(ErrorComment.NO_RETURN).left()
+            useReturn -> return RuleError(ErrorComment.NO_NEED_RETURN).left()
             else -> return func.right()
         }
     }
