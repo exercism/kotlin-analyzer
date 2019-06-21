@@ -4,6 +4,7 @@ package io.exercism.analyzer.kotlin.exercise
 import arrow.core.*
 import com.google.gson.Gson
 import io.exercism.analyzer.kotlin.analysis.Analysis
+import io.exercism.analyzer.kotlin.analysis.AnalysisStatus
 import kastree.ast.Node
 import kastree.ast.psi.Parser
 import java.io.File
@@ -22,7 +23,10 @@ abstract class Exercise(open val path: String) {
             .flatMap { extractCode(it) }
             .flatMap { applyRules(it) }
             .flatMap { generateJsonFile(it) }
-            .fold({ it.left() }, { it.right() })
+            .fold({
+                generateJsonFile(Analysis(AnalysisStatus.refer_to_mentor, comments = emptyList()))
+                it.left()
+            }, { it.right() })
     }
 
     private fun generateJsonFile(analysis: Analysis): Either<JsonGenerationError, Analysis> {
